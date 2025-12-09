@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Empréstimos atrasados</h2>
+
+<a href="{{ url_for('emprestimos_abertos') }}" class="btn btn-secondary mb-3">
+  Voltar para todos os empréstimos
+</a>
+
+{% if emprestimos %}
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Livro</th>
+      <th>Leitor</th>
+      <th>Vencido em</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for emp in emprestimos %}
+    <tr class="table-danger">
+      <td>{{ emp["id"] }}</td>
+      <td>{{ emp["livro_titulo"] }}</td>
+      <td>{{ emp["usuario_nome"] }}</td>
+      <td>{{ emp["data_prevista_devolucao"] | data_br }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Não há empréstimos atrasados.</p>
+{% endif %}
+{% endblock %}
