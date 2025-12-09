@@ -1,13 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
-<h3>Empréstimo - {{ livro.titulo }}</h3>
+<h3>Empréstimo – {{ livro.titulo }}</h3>
+<p>
+  <strong>ID:</strong> {{ livro.id }} |
+  <strong>Autor:</strong> {{ livro.autor or '-' }} |
+  <strong>Editora:</strong> {{ livro.editora or '-' }}
+</p>
+
+<div class="mb-3">
+  <a href="{{ url_for('editar_livro', livro_id=livro.id) }}" class="btn btn-outline-primary btn-sm">
+    Editar livro
+  </a>
+  <a href="{{ url_for('listar_livros') }}" class="btn btn-outline-secondary btn-sm">Voltar aos livros</a>
+</div>
 
 <form method="post">
   <label>Nome do aluno *</label>
   <input type="text" name="nome_aluno" class="form-control mb-2" required>
 
   <label>Série</label>
-  <input type="text" name="serie" class="form-control mb-2">
+  <input type="text" name="serie" class="form-control mb-2" placeholder="Ex.: 6º ano A">
 
   <label>Data do empréstimo *</label>
   <input type="date" name="data_emprestimo" class="form-control mb-2" required>
@@ -15,7 +27,7 @@
   <label>Data prevista de devolução *</label>
   <input type="date" name="data_prevista" class="form-control mb-3" required>
 
-  <button class="btn btn-success" type="submit">Confirmar empréstimo</button>
+  <button type="submit" class="btn btn-success">Confirmar empréstimo</button>
   <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancelar</a>
 </form>
 {% endblock %}
