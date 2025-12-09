@@ -1,45 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-4">Biblioteca Marista</h1>
+<h2 class="mb-3">Biblioteca Marista</h2>
 
-<div class="row">
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm">
-      <div class="card-body text-center">
-        <h5 class="card-title">Livros cadastrados</h5>
-        <p class="display-6">{{ total_livros }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm">
-      <div class="card-body text-center">
-        <h5 class="card-title">Leitores cadastrados</h5>
-        <p class="display-6">{{ total_usuarios }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm {% if total_atrasados > 0 %}border-danger{% endif %}">
-      <div class="card-body text-center">
-        <h5 class="card-title">Empréstimos atrasados</h5>
-        <p class="display-6 {% if total_atrasados > 0 %}text-danger{% endif %}">
-          {{ total_atrasados }}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
+<a href="{{ url_for('novo_livro') }}" class="btn btn-success mb-3">+ Cadastrar novo livro</a>
 
-{% if atrasados %}
-<h3 class="mt-4">Atrasos recentes</h3>
-<ul class="list-group">
-  {% for e in atrasados %}
-    <li class="list-group-item list-group-item-danger">
-      {{ e["livro_titulo"] }} - {{ e["usuario_nome"] }}
-      (vencido em {{ e["data_prevista_devolucao"] | data_br }})
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Título</th>
+      <th>Autor</th>
+      <th>Editora</th>
+      <th>Disponíveis</th>
+      <th>Devolução</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in livros %}
+    <tr>
+      <td>{{ l.id }}</td>
+      <td>
+        <a href="{{ url_for('emprestar', livro_id=l.id) }}">{{ l.titulo }}</a>
+      </td>
+      <td>{{ l.autor or '-' }}</td>
+      <td>{{ l.editora or '-' }}</td>
+      <td>{{ l.quantidade_disponivel }}</td>
+      <td>
+        {% if l.status == 'EM_ABERTO' %}
+          {{ l.data_prevista_devolucao | data_br }}
+          <br><small>({{ l.nome_aluno }})</small>
+        {% else %}
+          —
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('editar_livro', livro_id=l.id) }}" class="btn btn-sm btn-primary">Editar</a>
+        <form method="post" action="{{ url_for('devolver', livro_id=l.id) }}" style="display:inline;">
+          <button class="btn btn-sm btn-success" type="submit">Dar baixa</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}
