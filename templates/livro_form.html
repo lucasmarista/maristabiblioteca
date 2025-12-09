@@ -31,6 +31,12 @@
          value="{{ livro.editora if livro else '' }}"
          class="form-control mb-2">
 
+  <label>Prateleira</label>
+  <input type="text" name="prateleira"
+         value="{{ livro.prateleira if livro else '' }}"
+         class="form-control mb-2"
+         placeholder="Ex.: A3, Estante 2, Infantil, etc.">
+
   <label>Ano</label>
   <input type="number" name="ano"
          value="{{ livro.ano if livro and livro.ano else '' }}"
