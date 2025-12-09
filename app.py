@@ -101,7 +101,7 @@ def data_br(date_str):
 def get_livros(termo=None):
     """
     Lista livros, já trazendo (se existir) o empréstimo em aberto.
-    Usado tanto na página inicial quanto na página 'Livros'.
+    Ordena por ID e permite busca também por ID.
     """
     with get_connection() as conn:
         c = conn.cursor()
@@ -118,14 +118,18 @@ def get_livros(termo=None):
         params = []
         if termo:
             sql += """
-            WHERE l.titulo LIKE ?
+            WHERE CAST(l.id AS TEXT) LIKE ?
+               OR l.titulo LIKE ?
                OR l.autor LIKE ?
                OR l.isbn LIKE ?
                OR l.prateleira LIKE ?
             """
             like = f"%{termo}%"
-            params = [like, like, like, like]
-        sql += " ORDER BY l.titulo"
+            params = [like, like, like, like, like]
+
+        # Ordena por ID crescente
+        sql += " ORDER BY l.id"
+
         c.execute(sql, params)
         return c.fetchall()
 
