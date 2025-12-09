@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Livros</h2>
+  <a href="{{ url_for('novo_livro') }}" class="btn btn-success">+ Cadastrar livro</a>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-6">
+    <input type="text" name="q" class="form-control"
+           placeholder="Buscar por título, autor ou ISBN"
+           value="{{ termo }}">
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+  </div>
+</form>
+
+{% if livros %}
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Título</th>
+      <th>Autor</th>
+      <th>Ano</th>
+      <th>ISBN</th>
+      <th>Disponíveis</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in livros %}
+    <tr>
+      <td>{{ l["id"] }}</td>
+      <td>{{ l["titulo"] }}</td>
+      <td>{{ l["autor"] or "-" }}</td>
+      <td>{{ l["ano"] or "-" }}</td>
+      <td>{{ l["isbn"] or "-" }}</td>
+      <td>{{ l["quantidade_disponivel"] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nenhum livro encontrado.</p>
+{% endif %}
+{% endblock %}
