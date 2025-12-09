@@ -1,44 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>Empréstimos em aberto</h2>
-  <a href="{{ url_for('novo_emprestimo') }}" class="btn btn-success">+ Novo empréstimo</a>
-</div>
+<h2>Empréstimos em aberto</h2>
 
-<a href="{{ url_for('emprestimos_atrasados') }}" class="btn btn-outline-danger mb-3">
-  Ver apenas atrasados
-</a>
-
-{% if emprestimos %}
 <table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th>ID</th>
       <th>Livro</th>
-      <th>Leitor</th>
+      <th>Aluno</th>
+      <th>Série</th>
       <th>Data empréstimo</th>
-      <th>Devolução até</th>
-      <th></th>
+      <th>Previsto para</th>
+      <th>Ações</th>
     </tr>
   </thead>
   <tbody>
-    {% for emp, atrasado in emprestimos %}
-    <tr class="{% if atrasado %}table-danger{% endif %}">
-      <td>{{ emp["id"] }}</td>
-      <td>{{ emp["livro_titulo"] }}</td>
-      <td>{{ emp["usuario_nome"] }}</td>
-      <td>{{ emp["data_emprestimo"] | data_br }}</td>
-      <td>{{ emp["data_prevista_devolucao"] | data_br }}</td>
+    {% for e in emprestimos %}
+    <tr>
+      <td>{{ e.livro_titulo }}</td>
+      <td>{{ e.nome_aluno }}</td>
+      <td>{{ e.serie or '-' }}</td>
+      <td>{{ e.data_emprestimo|data_br }}</td>
+      <td>{{ e.data_prevista_devolucao|data_br }}</td>
       <td>
-        <form method="post" action="{{ url_for('devolver_emprestimo', emp_id=emp['id']) }}">
-          <button type="submit" class="btn btn-sm btn-primary">Registrar devolução</button>
+        <form method="post" action="{{ url_for('devolver_emprestimo', emp_id=e.id) }}">
+          <button class="btn btn-sm btn-success" type="submit">Dar baixa</button>
         </form>
       </td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="6">Nenhum empréstimo em aberto.</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-{% else %}
-<p>Nenhum empréstimo em aberto.</p>
-{% endif %}
 {% endblock %}
