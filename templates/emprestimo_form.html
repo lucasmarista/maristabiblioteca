@@ -6,6 +6,9 @@
   <strong>Autor:</strong> {{ livro.autor or '-' }} |
   <strong>Editora:</strong> {{ livro.editora or '-' }} |
   <strong>Prateleira:</strong> {{ livro.prateleira or '-' }}
+  {% if livro.observacao %}
+    <br><strong>Obs. do livro:</strong> {{ livro.observacao }}
+  {% endif %}
 </p>
 
 <div class="mb-3">
