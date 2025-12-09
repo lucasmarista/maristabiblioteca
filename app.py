@@ -316,7 +316,7 @@ def listar_usuarios():
 
 @app.route("/usuarios/novo", methods=["GET", "POST"])
 def novo_usuario():
-    if request.method == "POST":
+    if request.method == "POST__":
         nome = request.form.get("nome", "").strip()
         contato = request.form.get("contato", "").strip()
 
@@ -386,5 +386,4 @@ def devolver_emprestimo(emp_id):
 
 
 if __name__ == "__main__":
-    # rodando localmente
     app.run(debug=True)
