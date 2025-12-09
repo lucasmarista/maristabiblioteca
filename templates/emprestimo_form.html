@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Novo empréstimo</h2>
+
+<form method="post" class="mt-3">
+  <div class="mb-3">
+    <label class="form-label">Livro *</label>
+    <select name="livro_id" class="form-select" required>
+      <option value="">Selecione...</option>
+      {% for l in livros %}
+      <option value="{{ l['id'] }}">
+        {{ l["titulo"] }} (disp.: {{ l["quantidade_disponivel"] }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Leitor *</label>
+    <select name="usuario_id" class="form-select" required>
+      <option value="">Selecione...</option>
+      {% for u in usuarios %}
+      <option value="{{ u['id'] }}">{{ u["nome"] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Data prevista de devolução (dd/mm/aaaa) *</label>
+    <input type="text" name="data_prevista" class="form-control" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  <a href="{{ url_for('emprestimos_abertos') }}" class="btn btn-secondary">Voltar</a>
+</form>
+{% endblock %}
