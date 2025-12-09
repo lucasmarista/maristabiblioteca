@@ -4,9 +4,7 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-
-# troque por algo mais difícil se quiser mais segurança
-app.secret_key = "biblioteca_marista_super_secret"
+app.secret_key = "biblioteca_marista_super_secret"  # se quiser, troque por algo mais difícil
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "biblioteca.db")
@@ -239,7 +237,7 @@ def registrar_devolucao(emprestimo_id):
              WHERE id = ?
         """, (hoje_iso, emprestimo_id))
 
-        # devolve exemplar ao estoque
+        # devolve exemplar para o estoque
         cur.execute("""
             UPDATE livros
                SET quantidade_disponivel = quantidade_disponivel + 1
@@ -251,8 +249,9 @@ def registrar_devolucao(emprestimo_id):
 
 # ------------------ INICIALIZAÇÃO ------------------ #
 
-@app.before_first_request
+@app.before_serving
 def inicializar():
+    """Chamado uma vez por processo antes de começar a atender requisições."""
     init_db()
 
 
@@ -305,6 +304,7 @@ def novo_livro():
         flash("Livro cadastrado com sucesso!")
         return redirect(url_for("listar_livros"))
 
+        # se cair aqui, é GET
     return render_template("livro_form.html")
 
 
@@ -388,5 +388,7 @@ def devolver_emprestimo(emp_id):
 
 
 if __name__ == "__main__":
-    # Para rodar localmente:
+    # rodando localmente
+    init_db()
     app.run(debug=True)
+
