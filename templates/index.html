@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="mb-3">Biblioteca Marista</h2>
+<h2 class="mb-3">Biblioteca – Página inicial</h2>
 
 <a href="{{ url_for('novo_livro') }}" class="btn btn-success mb-3">+ Cadastrar novo livro</a>
 
@@ -12,7 +12,7 @@
       <th>Autor</th>
       <th>Editora</th>
       <th>Disponíveis</th>
-      <th>Devolução</th>
+      <th>Situação</th>
       <th>Ações</th>
     </tr>
   </thead>
@@ -21,24 +21,32 @@
     <tr>
       <td>{{ l.id }}</td>
       <td>
-        <a href="{{ url_for('emprestar', livro_id=l.id) }}">{{ l.titulo }}</a>
+        <!-- Clicando no título: vai direto para a tela de empréstimo -->
+        <a href="{{ url_for('novo_emprestimo', livro_id=l.id) }}">{{ l.titulo }}</a>
       </td>
-      <td>{{ l.autor or '-' }}</td>
-      <td>{{ l.editora or '-' }}</td>
+      <td>{{ l.autor or "-" }}</td>
+      <td>{{ l.editora or "-" }}</td>
       <td>{{ l.quantidade_disponivel }}</td>
       <td>
-        {% if l.status == 'EM_ABERTO' %}
-          {{ l.data_prevista_devolucao | data_br }}
-          <br><small>({{ l.nome_aluno }})</small>
+        {% if l.emprestimo_id %}
+          Emprestado para {{ l.nome_aluno }}<br>
+          Devolver em {{ l.data_prevista_devolucao|data_br }}
         {% else %}
-          —
+          Disponível
         {% endif %}
       </td>
       <td>
         <a href="{{ url_for('editar_livro', livro_id=l.id) }}" class="btn btn-sm btn-primary">Editar</a>
-        <form method="post" action="{{ url_for('devolver', livro_id=l.id) }}" style="display:inline;">
-          <button class="btn btn-sm btn-success" type="submit">Dar baixa</button>
+
+        {% if l.emprestimo_id %}
+        <form method="post"
+              action="{{ url_for('devolver_emprestimo', emp_id=l.emprestimo_id) }}"
+              style="display:inline;">
+          <button type="submit" class="btn btn-sm btn-success">
+            Dar baixa
+          </button>
         </form>
+        {% endif %}
       </td>
     </tr>
     {% endfor %}
