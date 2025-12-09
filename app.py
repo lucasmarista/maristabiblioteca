@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = "biblioteca_marista_2025"
@@ -19,11 +19,11 @@ def get_connection():
 
 
 def init_db():
-    """Garante que as tabelas existam e que a tabela de livros tenha a coluna 'prateleira'."""
+    """Garante que as tabelas existam e adiciona colunas novas (prateleira, observacao) se faltar."""
     with get_connection() as conn:
         c = conn.cursor()
 
-        # Tabela de livros (modelo atual, sem prateleira)
+        # Cria tabela de livros (se não existir)
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS livros (
@@ -31,21 +31,27 @@ def init_db():
                 titulo TEXT NOT NULL,
                 autor TEXT,
                 editora TEXT,
+                prateleira TEXT,
                 ano INTEGER,
                 isbn TEXT,
                 quantidade_total INTEGER NOT NULL,
-                quantidade_disponivel INTEGER NOT NULL
+                quantidade_disponivel INTEGER NOT NULL,
+                observacao TEXT
             );
             """
         )
 
-        # Garante a coluna 'prateleira' (caso seja um banco antigo)
+        # Garante colunas novas em bancos antigos
         c.execute("PRAGMA table_info(livros);")
         cols = [row[1] for row in c.fetchall()]
+
         if "prateleira" not in cols:
             c.execute("ALTER TABLE livros ADD COLUMN prateleira TEXT;")
 
-        # Tabela de empréstimos (modelo atual)
+        if "observacao" not in cols:
+            c.execute("ALTER TABLE livros ADD COLUMN observacao TEXT;")
+
+        # Cria tabela de empréstimos (se não existir)
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS emprestimos (
@@ -95,7 +101,7 @@ def data_br(date_str):
 def get_livros(termo=None):
     """
     Lista livros, já trazendo (se existir) o empréstimo em aberto.
-    Assim conseguimos mostrar na busca e na página inicial quando será devolvido.
+    Usado tanto na página inicial quanto na página 'Livros'.
     """
     with get_connection() as conn:
         c = conn.cursor()
@@ -112,7 +118,10 @@ def get_livros(termo=None):
         params = []
         if termo:
             sql += """
-            WHERE l.titulo LIKE ? OR l.autor LIKE ? OR l.isbn LIKE ? OR l.prateleira LIKE ?
+            WHERE l.titulo LIKE ?
+               OR l.autor LIKE ?
+               OR l.isbn LIKE ?
+               OR l.prateleira LIKE ?
             """
             like = f"%{termo}%"
             params = [like, like, like, like]
@@ -128,20 +137,24 @@ def get_livro(livro_id: int):
         return c.fetchone()
 
 
-def criar_livro(id_manual, titulo, autor, editora, prateleira, ano, isbn, quantidade):
+def criar_livro(id_manual, titulo, autor, editora, prateleira, observacao, ano, isbn, quantidade):
     with get_connection() as conn:
         c = conn.cursor()
         c.execute(
             """
-            INSERT INTO livros (id, titulo, autor, editora, prateleira, ano, isbn, quantidade_total, quantidade_disponivel)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO livros
+                (id, titulo, autor, editora, prateleira, observacao,
+                 ano, isbn, quantidade_total, quantidade_disponivel)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (id_manual, titulo, autor, editora, prateleira, ano, isbn, quantidade, quantidade),
+            (id_manual, titulo, autor, editora, prateleira, observacao,
+             ano, isbn, quantidade, quantidade),
         )
         conn.commit()
 
 
-def atualizar_livro(livro_id, titulo, autor, editora, prateleira, ano, isbn, quantidade_total, quantidade_disponivel):
+def atualizar_livro(livro_id, titulo, autor, editora, prateleira, observacao,
+                    ano, isbn, quantidade_total, quantidade_disponivel):
     with get_connection() as conn:
         c = conn.cursor()
         c.execute(
@@ -151,13 +164,15 @@ def atualizar_livro(livro_id, titulo, autor, editora, prateleira, ano, isbn, qua
                    autor = ?,
                    editora = ?,
                    prateleira = ?,
+                   observacao = ?,
                    ano = ?,
                    isbn = ?,
                    quantidade_total = ?,
                    quantidade_disponivel = ?
              WHERE id = ?
             """,
-            (titulo, autor, editora, prateleira, ano, isbn, quantidade_total, quantidade_disponivel, livro_id),
+            (titulo, autor, editora, prateleira, observacao,
+             ano, isbn, quantidade_total, quantidade_disponivel, livro_id),
         )
         conn.commit()
 
@@ -203,6 +218,26 @@ def get_emprestimos_atrasados():
         return c.fetchall()
 
 
+def get_historico_livro(livro_id, dias=90):
+    """Retorna os empréstimos desse livro nos últimos 'dias' (padrão: 90 ~ 3 meses)."""
+    limite = datetime.today() - timedelta(days=dias)
+    limite_str = limite.strftime("%Y-%m-%d")
+
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute(
+            """
+            SELECT *
+              FROM emprestimos
+             WHERE livro_id = ?
+               AND data_emprestimo >= ?
+             ORDER BY data_emprestimo DESC
+            """,
+            (livro_id, limite_str),
+        )
+        return c.fetchall()
+
+
 def criar_emprestimo(livro_id, nome_aluno, serie, data_emprestimo, data_prevista):
     with get_connection() as conn:
         c = conn.cursor()
@@ -225,7 +260,8 @@ def criar_emprestimo(livro_id, nome_aluno, serie, data_emprestimo, data_prevista
 
         c.execute(
             """
-            INSERT INTO emprestimos (livro_id, nome_aluno, serie, data_emprestimo, data_prevista_devolucao, status)
+            INSERT INTO emprestimos
+                (livro_id, nome_aluno, serie, data_emprestimo, data_prevista_devolucao, status)
             VALUES (?, ?, ?, ?, ?, 'EM_ABERTO')
             """,
             (livro_id, nome_aluno, serie, data_emprestimo, data_prevista),
@@ -275,7 +311,7 @@ def registrar_devolucao(emprestimo_id):
 
 @app.route("/")
 def index():
-    # agora a página inicial também faz a busca
+    # página inicial também faz busca
     termo = request.args.get("q", "").strip()
     livros = get_livros(termo if termo else None)
     return render_template("index.html", livros=livros, termo=termo)
@@ -283,7 +319,7 @@ def index():
 
 @app.route("/livros")
 def listar_livros():
-    # página "Livros" agora é só para visualizar todos os detalhes
+    # página "Livros" = visão detalhada de todos os livros
     livros = get_livros()
     return render_template("livros.html", livros=livros)
 
@@ -296,6 +332,7 @@ def novo_livro():
         autor = request.form.get("autor", "").strip()
         editora = request.form.get("editora", "").strip()
         prateleira = request.form.get("prateleira", "").strip()
+        observacao = request.form.get("observacao", "").strip()
         ano_str = request.form.get("ano", "").strip()
         isbn = request.form.get("isbn", "").strip()
         qtd_str = request.form.get("quantidade", "").strip()
@@ -318,7 +355,8 @@ def novo_livro():
             return redirect(url_for("novo_livro"))
 
         try:
-            criar_livro(int(id_manual), titulo, autor, editora, prateleira, ano, isbn, quantidade)
+            criar_livro(int(id_manual), titulo, autor, editora, prateleira,
+                        observacao, ano, isbn, quantidade)
             flash("Livro cadastrado com sucesso!")
             return redirect(url_for("listar_livros"))
         except sqlite3.IntegrityError:
@@ -340,6 +378,7 @@ def editar_livro(livro_id):
         autor = request.form.get("autor", "").strip()
         editora = request.form.get("editora", "").strip()
         prateleira = request.form.get("prateleira", "").strip()
+        observacao = request.form.get("observacao", "").strip()
         ano_str = request.form.get("ano", "").strip()
         isbn = request.form.get("isbn", "").strip()
         qtd_total_str = request.form.get("quantidade_total", "").strip()
@@ -363,6 +402,7 @@ def editar_livro(livro_id):
             autor,
             editora,
             prateleira,
+            observacao,
             ano,
             isbn,
             quantidade_total,
@@ -379,6 +419,17 @@ def excluir_livro(livro_id):
     excluir_livro_db(livro_id)
     flash("Livro excluído com sucesso!")
     return redirect(url_for("listar_livros"))
+
+
+@app.route("/livros/<int:livro_id>/historico")
+def historico_livro(livro_id):
+    livro = get_livro(livro_id)
+    if not livro:
+        flash("Livro não encontrado.")
+        return redirect(url_for("listar_livros"))
+
+    historico = get_historico_livro(livro_id)
+    return render_template("historico_livro.html", livro=livro, historico=historico)
 
 
 @app.route("/emprestimos/abertos")
