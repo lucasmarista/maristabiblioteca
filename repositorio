@@ -1,0 +1,14 @@
+bibliotecamarista/
+  app.py
+  requirements.txt
+  render.yaml
+  templates/
+    base.html
+    index.html
+    livros.html
+    livro_form.html
+    usuarios.html
+    usuario_form.html
+    emprestimos_abertos.html
+    emprestimos_atrasados.html
+    emprestimo_form.html
