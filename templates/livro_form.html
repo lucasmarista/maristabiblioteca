@@ -3,10 +3,10 @@
 
 {% if livro %}
   <h3>Editar livro #{{ livro.id }}</h3>
-  <form method="post" action="{{ url_for('editar_livro', livro_id=livro.id) }}">
+  <form method="post" action="{{ url_for('editar_livro', livro_id=livro.id) }}" class="d-inline">
 {% else %}
   <h3>Cadastrar novo livro</h3>
-  <form method="post" action="{{ url_for('novo_livro') }}">
+  <form method="post" action="{{ url_for('novo_livro') }}" class="d-inline">
 {% endif %}
 
   {% if not livro %}
@@ -65,15 +65,15 @@
 
   <button type="submit" class="btn btn-primary">Salvar</button>
   <a href="{{ url_for('listar_livros') }}" class="btn btn-secondary">Cancelar</a>
-
-  {% if livro %}
-    <form method="post"
-          action="{{ url_for('excluir_livro', livro_id=livro.id) }}"
-          style="display:inline;"
-          onsubmit="return confirm('Tem certeza que deseja excluir este livro?');">
-      <button type="submit" class="btn btn-danger">Excluir livro</button>
-    </form>
-  {% endif %}
 </form>
+
+{% if livro %}
+<form method="post"
+      action="{{ url_for('excluir_livro', livro_id=livro.id) }}"
+      class="d-inline"
+      onsubmit="return confirm('Tem certeza que deseja excluir este livro?');">
+  <button type="submit" class="btn btn-danger">Excluir livro</button>
+</form>
+{% endif %}
 
 {% endblock %}
