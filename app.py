@@ -247,12 +247,10 @@ def registrar_devolucao(emprestimo_id):
         conn.commit()
 
 
-# ------------------ INICIALIZAÇÃO ------------------ #
+# ------------------ INICIALIZAÇÃO GLOBAL ------------------ #
 
-@app.before_serving
-def inicializar():
-    """Chamado uma vez por processo antes de começar a atender requisições."""
-    init_db()
+# garante que o banco e as tabelas existam sempre que o app for importado (incluindo no Render)
+init_db()
 
 
 # ------------------ ROTAS ------------------ #
@@ -304,7 +302,7 @@ def novo_livro():
         flash("Livro cadastrado com sucesso!")
         return redirect(url_for("listar_livros"))
 
-        # se cair aqui, é GET
+    # se cair aqui, é GET
     return render_template("livro_form.html")
 
 
@@ -389,6 +387,4 @@ def devolver_emprestimo(emp_id):
 
 if __name__ == "__main__":
     # rodando localmente
-    init_db()
     app.run(debug=True)
-
