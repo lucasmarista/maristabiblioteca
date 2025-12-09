@@ -6,6 +6,7 @@
   <thead>
     <tr>
       <th>Livro</th>
+      <th>Prateleira</th>
       <th>Aluno</th>
       <th>Série</th>
       <th>Data empréstimo</th>
@@ -16,6 +17,7 @@
     {% for e in emprestimos %}
     <tr>
       <td>{{ e.livro_titulo }}</td>
+      <td>{{ e.prateleira or '-' }}</td>
       <td>{{ e.nome_aluno }}</td>
       <td>{{ e.serie or '-' }}</td>
       <td>{{ e.data_emprestimo|data_br }}</td>
@@ -23,7 +25,7 @@
     </tr>
     {% else %}
     <tr>
-      <td colspan="5">Nenhum empréstimo em atraso.</td>
+      <td colspan="6">Nenhum empréstimo em atraso.</td>
     </tr>
     {% endfor %}
   </tbody>
