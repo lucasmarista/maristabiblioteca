@@ -37,6 +37,10 @@
          class="form-control mb-2"
          placeholder="Ex.: A3, Estante 2, Infantil, etc.">
 
+  <label>Observação (opcional)</label>
+  <textarea name="observacao" class="form-control mb-2"
+            placeholder="Ex.: capa rasgada, edição antiga, livro muito procurado...">{{ livro.observacao if livro else '' }}</textarea>
+
   <label>Ano</label>
   <input type="number" name="ano"
          value="{{ livro.ano if livro and livro.ano else '' }}"
