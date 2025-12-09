@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Leitores</h2>
+  <a href="{{ url_for('novo_usuario') }}" class="btn btn-success">+ Cadastrar leitor</a>
+</div>
+
+{% if usuarios %}
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Contato</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in usuarios %}
+    <tr>
+      <td>{{ u["id"] }}</td>
+      <td>{{ u["nome"] }}</td>
+      <td>{{ u["contato"] or "-" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nenhum leitor cadastrado.</p>
+{% endif %}
+{% endblock %}
